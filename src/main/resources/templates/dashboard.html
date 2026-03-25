@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Intelligent Log Monitoring Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Auto Refresh -->
+    <meta http-equiv="refresh" content="5">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(to right, #f8f9fa, #eef2f7);
+            font-family: Arial, sans-serif;
+        }
+
+        .card-box {
+            border-radius: 18px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            padding: 24px;
+            background: white;
+            transition: transform 0.2s ease;
+        }
+
+        .card-box:hover {
+            transform: translateY(-3px);
+        }
+
+        .metric-card h2 {
+            font-size: 2.2rem;
+            font-weight: bold;
+        }
+
+        .status-HEALTHY {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-WARNING {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .status-CRITICAL {
+            color: red;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .table thead th {
+            vertical-align: middle;
+        }
+
+        canvas {
+            max-height: 320px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📊 Intelligent Log Monitoring Dashboard</h1>
+        <span class="text-muted">Auto-refreshing every 5 seconds</span>
+    </div>
+
+    <!-- Top Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-box text-center metric-card">
+                <h5>Total Logs</h5>
+                <h2 th:text="${overview.totalLogs}">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-box text-center metric-card">
+                <h5>Total Alerts</h5>
+                <h2 th:text="${overview.totalAlerts}">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-box text-center metric-card">
+                <h5>Total Errors</h5>
+                <h2 th:text="${overview.totalErrors}">0</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card-box">
+                <h4 class="section-title">📈 Error Count by Service</h4>
+                <canvas id="errorChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card-box">
+                <h4 class="section-title">🥧 Alert Type Distribution</h4>
+                <canvas id="alertChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Health -->
+    <div class="card-box mb-4">
+        <h4 class="section-title">🛠 Service Health</h4>
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>Service</th>
+                <th>Total Logs</th>
+                <th>Error Count</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="service : ${overview.serviceHealth}">
+                <td th:text="${service.service}">DBService</td>
+                <td th:text="${service.totalLogs}">5</td>
+                <td th:text="${service.errorCount}">5</td>
+                <td th:text="${service.status}"
+                    th:classappend="'status-' + ${service.status}">
+                    CRITICAL
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Alert Summary -->
+    <div class="card-box mb-4">
+        <h4 class="section-title">🚨 Alert Summary</h4>
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>Alert Type</th>
+                <th>Count</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="alert : ${overview.alertSummary}">
+                <td th:text="${alert.alertType}">HIGH_FREQUENCY_ERROR</td>
+                <td th:text="${alert.count}">1</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Alerts -->
+        <div class="col-md-6">
+            <div class="card-box">
+                <h4 class="section-title">⚠ Recent Alerts</h4>
+                <table class="table table-sm table-bordered table-hover">
+                    <thead class="table-danger">
+                    <tr>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Service</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="alert : ${overview.recentAlerts}">
+                        <td th:text="${alert.timestamp}">2026-03-25T10:42:05</td>
+                        <td th:text="${alert.type}">CASCADING_FAILURE</td>
+                        <td th:text="${alert.service}">OrderService</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Logs -->
+        <div class="col-md-6">
+            <div class="card-box">
+                <h4 class="section-title">📜 Recent Logs</h4>
+                <table class="table table-sm table-bordered table-hover">
+                    <thead class="table-primary">
+                    <tr>
+                        <th>Time</th>
+                        <th>Service</th>
+                        <th>Level</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${overview.recentLogs}">
+                        <td th:text="${log.timestamp}">2026-03-25T10:42:01</td>
+                        <td th:text="${log.service}">DBService</td>
+                        <td th:text="${log.level}">ERROR</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Data -->
+<script th:inline="javascript">
+    const serviceHealth = /*[[${overview.serviceHealth}]]*/ [];
+    const alertSummary = /*[[${overview.alertSummary}]]*/ [];
+
+    const serviceLabels = serviceHealth.map(item => item.service);
+    const errorCounts = serviceHealth.map(item => item.errorCount);
+
+    const alertLabels = alertSummary.map(item => item.alertType);
+    const alertCounts = alertSummary.map(item => item.count);
+
+    // Error Count by Service (Bar Chart)
+    new Chart(document.getElementById('errorChart'), {
+        type: 'bar',
+        data: {
+            labels: serviceLabels,
+            datasets: [{
+                label: 'Error Count',
+                data: errorCounts,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Alert Type Distribution (Pie Chart)
+    new Chart(document.getElementById('alertChart'), {
+        type: 'pie',
+        data: {
+            labels: alertLabels,
+            datasets: [{
+                label: 'Alert Count',
+                data: alertCounts
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
+
+</body>
+</html>
