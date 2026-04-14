@@ -1,0 +1,27 @@
+link1:http://localhost:8080/api/logs
+// it will show all logs
+
+link2:http://localhost:8080/api/logs/{service}
+// it will show logs for a specific service
+
+link3:http://localhost:8080/api/logs/{service}/{level}
+// it will show logs for a specific service and level
+
+link4:http://localhost:8080/api/logs/{service}/{level}/{duration}
+// it will show logs for a specific service and level and duration
+
+link5:http://localhost:8080/api/logs/{service}/{level}/{duration}/{message}
+// it will show logs for a specific service and level and duration and message
+
+link6: http://localhost:5178/
+// it will show the dashboard
+
+link7: http://localhost:5178/api/logs
+// it will show all logs
+
+link8:http://localhost:8080/h2-console/login.do?jsessionid=f4e5300643727a4dd1d4c2268f4fe9ad
+// it will show the database
+
+link9:http://localhost:8080/api/logs
+// for postman
+

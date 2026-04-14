@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class LogService {
@@ -19,12 +20,15 @@ public class LogService {
     }
 
     public void saveLog(LogEntry logEntry) {
-        if (logEntry.getId() == null || logEntry.getId().isBlank()) {
-            logEntry.setId(java.util.UUID.randomUUID().toString());
+
+        if (logEntry.getId() == null) {
+            logEntry.setId(UUID.randomUUID()); // ✅ FIXED
         }
 
         logRepository.save(logEntry);
+
         detectionService.analyze(logEntry, logRepository.findAll());
+
     }
 
     public List<LogEntry> getAllLogs() {
